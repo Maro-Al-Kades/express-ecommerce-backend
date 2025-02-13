@@ -1,0 +1,88 @@
+const mongoose = require("mongoose");
+
+const productSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: [true, "Product Title is Required"],
+      trim: true,
+      minLength: [3, "Product Title must be at least 3 characters"],
+      maxLength: [100, "Product Title must be at most 100 characters"],
+    },
+
+    slug: {
+      type: String,
+      lowercase: true,
+      required: true,
+    },
+
+    description: {
+      type: String,
+      required: [true, "Product Description is Required"],
+      minLength: [20, "Product Description must be at least 20 characters"],
+      maxLength: [500, "Product Description must be at most 500 characters"],
+    },
+
+    quantity: {
+      type: Number,
+      required: [true, "Product Quantity is Required"],
+    },
+
+    sold: {
+      type: Number,
+      default: 0,
+    },
+
+    price: {
+      type: Number,
+      required: [true, "Product Price is Required"],
+      trim: true,
+      min: 1,
+      maxLength: [7, "Product Price must be at most 7 numbers"],
+    },
+
+    priceAfterDiscount: {
+      type: Number,
+    },
+
+    colors: [String],
+
+    imageCover: {
+      type: String,
+      required: [true, "Product Image Cover is Required"],
+    },
+
+    images: [String],
+
+    category: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Category",
+      required: true,
+    },
+
+    subcategory: {
+      type: mongoose.Schema.ObjectId,
+      ref: "SubCategory",
+      required: true,
+    },
+
+    brand: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Brand",
+    },
+
+    averageRatings: {
+      type: Number,
+      min: [1, "Average Rating must be between 1 and 5"],
+      max: [5, "Average Rating must be between 1 and 5"],
+    },
+
+    ratingsQuantity: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("Product", productSchema);
