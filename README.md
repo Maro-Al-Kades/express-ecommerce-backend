@@ -1,5 +1,7 @@
 # Express.js Backend for Ecommerce Store
 
+![Ecommerce API](./md/readme.png)
+
 Building an eCommerce backend with **Express.js** provides a flexible and scalable solution for managing **products, orders, users, and payments**. Express.js, a minimal and fast **Node.js** framework, allows developers to create **RESTful APIs** efficiently.
 
 ## 🚀 Key Features:
@@ -18,10 +20,6 @@ Building an eCommerce backend with **Express.js** provides a flexible and scalab
 - **Deployment:** Docker, PM2, and cloud hosting services
 
 By structuring the backend with **RESTful APIs**, middleware, and controllers, we can create a **scalable and maintainable** eCommerce platform that efficiently handles user interactions and transactions.
-
----
-
-![Ecommerce API](./md/readme.png)
 
 ---
 
