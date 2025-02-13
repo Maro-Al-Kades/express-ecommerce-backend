@@ -11,7 +11,12 @@ exports.getCategories = asyncHandler(async (req, res) => {
 
   const categories = await Category.find({}).skip(SKIP).limit(LIMIT);
 
-  res.status(200).json({ results: categories.length, PAGE, data: categories });
+  res.status(200).json({
+    status: "success",
+    results: categories.length,
+    PAGE,
+    data: categories,
+  });
 });
 
 //* GET Specific Category by id
@@ -23,7 +28,7 @@ exports.getCategory = asyncHandler(async (req, res, next) => {
     return next(new ApiError(`No category found for this id ${id}`, 404));
   }
 
-  res.status(200).json({ data: category });
+  res.status(200).json({ status: "success", data: category });
 });
 
 //* POST Create New Category
@@ -31,7 +36,7 @@ exports.createCategory = asyncHandler(async (req, res) => {
   const { name } = req.body;
 
   const category = await Category.create({ name, slug: slugify(name) });
-  res.status(201).json({ data: category });
+  res.status(201).json({ status: "success", data: category });
 });
 
 //* PUT Update Specific Category by id
@@ -49,7 +54,7 @@ exports.updateCategory = asyncHandler(async (req, res, next) => {
     return next(new ApiError(`No category found for this id ${id}`, 404));
   }
 
-  res.status(200).json({ data: updatedCategory });
+  res.status(200).json({ status: "success", data: updatedCategory });
 });
 
 //* DELETE Specific Category by id
@@ -62,5 +67,7 @@ exports.DeleteCategory = asyncHandler(async (req, res, next) => {
     return next(new ApiError(`No category found for this id ${id}`, 404));
   }
 
-  res.status(200).json({ msg: "Category Deleted Successfully..." });
+  res
+    .status(200)
+    .json({ status: "success", msg: "Category Deleted Successfully..." });
 });
