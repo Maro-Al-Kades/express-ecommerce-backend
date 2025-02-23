@@ -2,19 +2,44 @@ const Category = require("../models/category.model");
 const slugify = require("slugify");
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../errors/apiError");
+const ApiFeatures = require("../api/api.features");
+const sharp = require("sharp");
+const { v4: uuidv4 } = require("uuid");
+const { uploadSingleImage } = require("../middlewares/uploadImage.middleware");
+
+exports.uploadCategoryImage = uploadSingleImage("image");
+
+exports.resizeCategoryImage = asyncHandler(async (req, res, next) => {
+  const filename = `category-${uuidv4()}-${Date.now()}.jpeg`;
+
+  await sharp(req.file.buffer)
+    .resize(600, 600)
+    .toFormat("jpeg")
+    .jpeg({ quality: 90 })
+    .toFile(`uploads/categories/${filename}`);
+
+  req.body.image = filename;
+
+  next();
+});
 
 //* GET Categories
 exports.getCategories = asyncHandler(async (req, res) => {
-  const PAGE = req.query.page * 1 || 1;
-  const LIMIT = req.query.limit * 1 || 5;
-  const SKIP = (PAGE - 1) * LIMIT;
+  const documentCounts = await Category.countDocuments();
+  const apiFeatures = new ApiFeatures(Category.find(), req.query)
+    .filter()
+    .search()
+    .sort()
+    .limitFields()
+    .paginate(documentCounts);
 
-  const categories = await Category.find({}).skip(SKIP).limit(LIMIT);
+  const { mongooseQuery, paginationResult } = apiFeatures;
+  const categories = await mongooseQuery;
 
   res.status(200).json({
     status: "success",
     results: categories.length,
-    PAGE,
+    paginationResult,
     data: categories,
   });
 });
@@ -33,20 +58,24 @@ exports.getCategory = asyncHandler(async (req, res, next) => {
 
 //* POST Create New Category
 exports.createCategory = asyncHandler(async (req, res) => {
-  const { name } = req.body;
+  const { title, image } = req.body;
 
-  const category = await Category.create({ name, slug: slugify(name) });
+  const category = await Category.create({
+    title,
+    slug: slugify(title),
+    image,
+  });
   res.status(201).json({ status: "success", data: category });
 });
 
 //* PUT Update Specific Category by id
 exports.updateCategory = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { name } = req.body;
+  const { title } = req.body;
 
   const updatedCategory = await Category.findOneAndUpdate(
     { _id: id },
-    { name, slug: slugify(name) },
+    { title, slug: slugify(title) },
     { new: true }
   );
 

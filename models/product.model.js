@@ -38,7 +38,7 @@ const productSchema = new mongoose.Schema(
       required: [true, "Product Price is Required"],
       trim: true,
       min: 1,
-      maxLength: [7, "Product Price must be at most 7 numbers"],
+      max: [1000000, "Product Price must be at most 1000000 $"],
     },
 
     priceAfterDiscount: {
@@ -60,10 +60,9 @@ const productSchema = new mongoose.Schema(
       required: true,
     },
 
-    subcategory: {
+    subcategories: {
       type: mongoose.Schema.ObjectId,
       ref: "SubCategory",
-      required: true,
     },
 
     brand: {
@@ -84,5 +83,14 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+productSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "category",
+    select: "title",
+  });
+
+  next();
+});
 
 module.exports = mongoose.model("Product", productSchema);

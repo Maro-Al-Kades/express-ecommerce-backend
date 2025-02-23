@@ -2,6 +2,7 @@ const slugify = require("slugify");
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../errors/apiError");
 const SubCategory = require("../models/subCategory.model");
+const ApiFeatures = require("../api/api.features");
 
 exports.setCategoryIdToBody = (req, res, next) => {
   if (!req.body.category) req.body.category = req.params.categoryId;
@@ -10,11 +11,11 @@ exports.setCategoryIdToBody = (req, res, next) => {
 
 //* POST Create New SubCategory - ${DOMAIN}/api/v1/subCategories
 exports.createSubCategory = asyncHandler(async (req, res) => {
-  const { name, category } = req.body;
+  const { title, category } = req.body;
 
   const subCategory = await SubCategory.create({
-    name,
-    slug: slugify(name),
+    title,
+    slug: slugify(title),
     category,
   });
 
@@ -31,19 +32,25 @@ exports.createFilterObject = (req, res, next) => {
 
 //* GET SubCategories - ${DOMAIN}/api/v1/subCategories
 exports.getSubCategories = asyncHandler(async (req, res) => {
-  const PAGE = req.query.page * 1 || 1;
-  const LIMIT = req.query.limit * 1 || 5;
-  const SKIP = (PAGE - 1) * LIMIT;
+  const documentCounts = await SubCategory.countDocuments();
+  const apiFeatures = new ApiFeatures(
+    SubCategory.find().populate({ path: "category", select: ["title", "id"] }),
+    req.query
+  )
+    .filter()
+    .search()
+    .sort()
+    .limitFields()
+    .paginate(documentCounts);
 
-  const subCategories = await SubCategory.find(req.filterObj)
-    .skip(SKIP)
-    .limit(LIMIT)
-    .populate({ path: "category", select: ["name", "id"] });
+  const { mongooseQuery, paginationResult } = apiFeatures;
+
+  const subCategories = await mongooseQuery;
 
   res.status(200).json({
     status: "success",
     results: subCategories.length,
-    PAGE,
+    paginationResult,
     data: subCategories,
   });
 });
@@ -53,7 +60,7 @@ exports.getSubCategory = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const subCategory = await SubCategory.findById(id).populate({
     path: "category",
-    select: ["name", "id"],
+    select: ["title", "id"],
   });
 
   if (!subCategory) {
@@ -66,11 +73,11 @@ exports.getSubCategory = asyncHandler(async (req, res, next) => {
 //* PUT Update Specific SubCategory by id - ${DOMAIN}/api/v1/subCategories/:id
 exports.updateSubCategory = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { name, category } = req.body;
+  const { title, category } = req.body;
 
   const subCategory = await SubCategory.findOneAndUpdate(
     { _id: id },
-    { name, slug: slugify(name), category },
+    { title, slug: slugify(title), category },
     { new: true }
   );
 
